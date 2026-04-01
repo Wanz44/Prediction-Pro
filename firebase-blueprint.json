@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "Match": {
+      "title": "Match",
+      "description": "A football match with team statistics and predictions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teamA": { "type": "object" },
+        "teamB": { "type": "object" },
+        "matchDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "finished"] },
+        "league": { "type": "string" },
+        "prediction": { "type": "object" }
+      },
+      "required": ["id", "teamA", "teamB", "matchDate", "status", "league"]
+    }
+  },
+  "firestore": {
+    "/matches/{matchId}": {
+      "schema": "Match",
+      "description": "Collection of football matches."
+    }
+  }
+}
