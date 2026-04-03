@@ -16,6 +16,7 @@ interface MatchDiscoveryViewProps {
   leagues: string[];
   isDiscovering: boolean;
   onDiscover: () => void;
+  onReset: () => void;
 }
 
 export const MatchDiscoveryView: React.FC<MatchDiscoveryViewProps> = ({ 
@@ -29,11 +30,12 @@ export const MatchDiscoveryView: React.FC<MatchDiscoveryViewProps> = ({
   setSelectedLeague,
   leagues,
   isDiscovering,
-  onDiscover
+  onDiscover,
+  onReset
 }) => {
   return (
     <div className="max-w-7xl mx-auto px-6">
-      <MatchDiscoveryAlgorithm onDiscover={onDiscover} isDiscovering={isDiscovering} />
+      <MatchDiscoveryAlgorithm onDiscover={onDiscover} isDiscovering={isDiscovering} onReset={onReset} />
       
       <MatchSearchAndFilter 
         searchQuery={searchQuery} 

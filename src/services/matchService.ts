@@ -40,6 +40,65 @@ export function calculateProbabilities(a: TeamStats, b: TeamStats): { winA: numb
   };
 }
 
+export function generateAlgorithmicAnalysis(a: TeamStats, b: TeamStats, probs: { winA: number, winB: number, draw: number }): string {
+  const analysis: string[] = [];
+  
+  // 1. Overall Comparison
+  const ovrDiff = a.overall - b.overall;
+  if (Math.abs(ovrDiff) < 3) {
+    analysis.push(`### ⚖️ Équilibre des Forces\nLes deux équipes affichent un niveau global très proche (${a.overall} vs ${b.overall}). Le match se jouera probablement sur des détails tactiques ou des exploits individuels.`);
+  } else if (ovrDiff >= 3) {
+    analysis.push(`### 📈 Supériorité de ${a.name}\nSur le papier, **${a.name}** part favori avec un avantage de puissance global. Leur effectif semble plus complet et mieux équilibré que celui de **${b.name}**.`);
+  } else {
+    analysis.push(`### 📉 Avantage ${b.name}\n**${b.name}** possède un effectif statistiquement supérieur. **${a.name}** devra compenser par une organisation sans faille pour espérer un résultat.`);
+  }
+
+  // 2. Tactical Matchup
+  analysis.push(`### 🛡️ Duel Tactique : ${a.tactics} vs ${b.tactics}`);
+  if (a.tactics === 'Gegenpressing' && b.tactics === 'Possession') {
+    analysis.push(`Le pressing intense de **${a.name}** pourrait perturber la construction lente de **${b.name}**. Si le pressing est efficace, des récupérations hautes sont à prévoir.`);
+  } else if (a.tactics === 'Counter-Attack' && b.tactics === 'Possession') {
+    analysis.push(`Scénario classique : **${b.name}** aura le ballon, mais s'exposera aux contres foudroyants de **${a.name}**. La vitesse de transition sera la clé.`);
+  } else if (a.tactics === 'Defensive' || b.tactics === 'Defensive') {
+    analysis.push(`Un match fermé est à prévoir. L'équipe défensive cherchera à réduire les espaces, rendant chaque occasion de but extrêmement précieuse.`);
+  } else {
+    analysis.push(`Les deux styles suggèrent un match ouvert. Le contrôle du milieu de terrain (${a.midfield} vs ${b.midfield}) déterminera qui dictera le tempo.`);
+  }
+
+  // 3. Key Areas
+  const attDefA = a.attack - b.defense;
+  const attDefB = b.attack - a.defense;
+  
+  analysis.push(`### 🎯 Zones Clés`);
+  if (attDefA > 5) {
+    analysis.push(`- **Attaque de ${a.name}** : Leur puissance offensive (${a.attack}) risque de submerger la défense de **${b.name}** (${b.defense}).`);
+  }
+  if (attDefB > 5) {
+    analysis.push(`- **Attaque de ${b.name}** : La défense de **${a.name}** (${a.defense}) devra être vigilante face au danger offensif adverse (${b.attack}).`);
+  }
+  
+  // 4. Form & Fitness
+  if (a.form > b.form + 10) {
+    analysis.push(`- **Dynamique** : **${a.name}** arrive avec une confiance bien supérieure (${a.form} vs ${b.form}).`);
+  }
+  if (a.fitness < 70 || b.fitness < 70) {
+    const tired = a.fitness < 70 ? a.name : b.name;
+    analysis.push(`- **Condition Physique** : La fatigue accumulée de **${tired}** pourrait peser lourdement en fin de match.`);
+  }
+
+  // 5. Conclusion
+  analysis.push(`### 🏁 Verdict de l'Algorithme`);
+  if (probs.winA > probs.winB + 10) {
+    analysis.push(`Victoire probable de **${a.name}**. Leur supériorité dans les compartiments clés devrait faire la différence.`);
+  } else if (probs.winB > probs.winA + 10) {
+    analysis.push(`Victoire probable de **${b.name}**. Ils disposent des armes nécessaires pour s'imposer à l'extérieur.`);
+  } else {
+    analysis.push(`Match nul très probable. Les forces en présence s'équilibrent et aucune équipe ne semble capable de prendre un ascendant définitif.`);
+  }
+
+  return analysis.join('\n\n');
+}
+
 export async function saveMatchToDB(match: Omit<Match, 'id'>): Promise<string> {
   try {
     const docRef = await addDoc(collection(db, MATCHES_COLLECTION), match);
@@ -74,6 +133,23 @@ export async function cleanupExpiredMatches(): Promise<void> {
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, MATCHES_COLLECTION);
+  }
+}
+
+export async function clearAllMatches(): Promise<void> {
+  try {
+    const q = query(collection(db, MATCHES_COLLECTION));
+    const snapshot = await getDocs(q);
+    
+    const deletePromises = snapshot.docs.map(doc => 
+      deleteDoc(doc.ref).catch(err => handleFirestoreError(err, OperationType.DELETE, doc.ref.path))
+    );
+
+    await Promise.all(deletePromises);
+    console.log(`Cleared all ${deletePromises.length} matches.`);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, MATCHES_COLLECTION);
+    throw error;
   }
 }
 

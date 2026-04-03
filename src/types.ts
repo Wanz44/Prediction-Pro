@@ -29,4 +29,5 @@ export interface PredictionResult {
   winB: number;
   draw: number;
   analysis: string;
+  algoAnalysis?: string;
 }

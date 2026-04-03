@@ -6,10 +6,12 @@ import { cn } from '../lib/utils';
 interface MatchDiscoveryAlgorithmProps {
   onDiscover: () => void;
   isDiscovering: boolean;
+  onReset: () => void;
 }
 
-export const MatchDiscoveryAlgorithm: React.FC<MatchDiscoveryAlgorithmProps> = ({ onDiscover, isDiscovering }) => {
+export const MatchDiscoveryAlgorithm: React.FC<MatchDiscoveryAlgorithmProps> = ({ onDiscover, isDiscovering, onReset }) => {
   const [step, setStep] = useState(0);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const steps = [
     { label: 'Scanning Global Leagues', icon: Globe },
@@ -28,6 +30,16 @@ export const MatchDiscoveryAlgorithm: React.FC<MatchDiscoveryAlgorithmProps> = (
       setStep(0);
     }
   }, [isDiscovering]);
+
+  const handleResetClick = () => {
+    if (showConfirm) {
+      onReset();
+      setShowConfirm(false);
+    } else {
+      setShowConfirm(true);
+      setTimeout(() => setShowConfirm(false), 3000);
+    }
+  };
 
   return (
     <div className="bg-slate-900 rounded-3xl p-12 text-white relative overflow-hidden shadow-2xl shadow-indigo-200 mb-12 border border-slate-800">
@@ -85,6 +97,21 @@ export const MatchDiscoveryAlgorithm: React.FC<MatchDiscoveryAlgorithmProps> = (
               </motion.div>
             )}
           </AnimatePresence>
+
+          {!isDiscovering && (
+            <button
+              onClick={handleResetClick}
+              className={cn(
+                "px-6 py-3 font-bold text-sm transition-all flex items-center gap-2 rounded-xl border",
+                showConfirm 
+                  ? "bg-rose-500/10 border-rose-500/50 text-rose-400 animate-pulse" 
+                  : "text-slate-500 hover:text-rose-400 border-transparent hover:bg-slate-800"
+              )}
+            >
+              <RefreshCw className={cn("w-4 h-4", showConfirm && "animate-spin")} />
+              {showConfirm ? "Click again to confirm reset" : "Reset Database"}
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-10 pt-6 border-t border-slate-800">
